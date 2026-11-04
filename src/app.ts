@@ -3,7 +3,7 @@ import type { CreateUserInput, UpdateUserInput } from "./types";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+  "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
 };
 
@@ -47,6 +47,7 @@ export function createApp(db: UserDatabase = createDatabase()) {
             { method: "GET", path: "/api/users/:id", description: "Get user by ID" },
             { method: "POST", path: "/api/users", description: "Create user" },
             { method: "PUT", path: "/api/users/:id", description: "Update user" },
+            { method: "PATCH", path: "/api/users/:id", description: "Partially update user" },
             { method: "DELETE", path: "/api/users/:id", description: "Delete user" },
           ],
         });
@@ -103,7 +104,7 @@ export function createApp(db: UserDatabase = createDatabase()) {
           return json({ data: user });
         }
 
-        if (method === "PUT") {
+        if (method === "PUT" || method === "PATCH") {
           let body: UpdateUserInput;
           try {
             body = (await req.json()) as UpdateUserInput;
@@ -115,7 +116,11 @@ export function createApp(db: UserDatabase = createDatabase()) {
             return json({ error: "Invalid JSON body" }, 400);
           }
 
-          if (body.email !== undefined && !isValidEmail(body.email)) {
+          if (body.name !== undefined && (typeof body.name !== "string" || !body.name.trim())) {
+            return json({ error: "Field 'name' must be a non-empty string" }, 400);
+          }
+
+          if (body.email !== undefined && (!body.email || typeof body.email !== "string" || !isValidEmail(body.email))) {
             return json({ error: "Invalid email format" }, 400);
           }
 

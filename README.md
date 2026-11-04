@@ -46,7 +46,8 @@ bun run typecheck
 | `GET` | `/api/users` | Recupera tutti gli utenti |
 | `GET` | `/api/users/:id` | Recupera un utente per ID |
 | `POST` | `/api/users` | Crea un nuovo utente |
-| `PUT` | `/api/users/:id` | Aggiorna un utente esistente |
+| `PUT` | `/api/users/:id` | Sostituisce/aggiorna un utente esistente |
+| `PATCH` | `/api/users/:id` | Aggiorna parzialmente un utente |
 | `DELETE` | `/api/users/:id` | Elimina un utente |
 
 ### Modello Utente
@@ -81,14 +82,21 @@ curl http://localhost:3000/api/users
 curl http://localhost:3000/api/users/<USER_ID>
 ```
 
-#### 4. Aggiornamento utente (`PUT /api/users/:id`)
+#### 4. Aggiornamento completo utente (`PUT /api/users/:id`)
 ```bash
 curl -X PUT http://localhost:3000/api/users/<USER_ID> \
   -H "Content-Type: application/json" \
-  -d '{"name": "Mario Rossi Modificato"}'
+  -d '{"name": "Mario Rossi Aggiornato", "email": "mario.new@example.com", "role": "user"}'
 ```
 
-#### 5. Cancellazione utente (`DELETE /api/users/:id`)
+#### 5. Aggiornamento parziale utente (`PATCH /api/users/:id`)
+```bash
+curl -X PATCH http://localhost:3000/api/users/<USER_ID> \
+  -H "Content-Type: application/json" \
+  -d '{"role": "editor"}'
+```
+
+#### 6. Cancellazione utente (`DELETE /api/users/:id`)
 ```bash
 curl -X DELETE http://localhost:3000/api/users/<USER_ID>
 ```

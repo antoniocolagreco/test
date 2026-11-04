@@ -141,6 +141,65 @@ describe("User CRUD API", () => {
     expect(updated.data.email).toBe("old@example.com");
   });
 
+  it("PATCH /api/users/:id partially updates user fields", async () => {
+    const createRes = await app.fetch(
+      new Request("http://localhost/api/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: "Initial Name", email: "initial@example.com", role: "user" }),
+      })
+    );
+    const created = (await createRes.json()) as any;
+
+    // Patch only role
+    const patchRoleRes = await app.fetch(
+      new Request(`http://localhost/api/users/${created.data.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ role: "admin" }),
+      })
+    );
+    expect(patchRoleRes.status).toBe(200);
+    const patchedRole = (await patchRoleRes.json()) as any;
+    expect(patchedRole.data.role).toBe("admin");
+    expect(patchedRole.data.name).toBe("Initial Name");
+    expect(patchedRole.data.email).toBe("initial@example.com");
+
+    // Patch only email
+    const patchEmailRes = await app.fetch(
+      new Request(`http://localhost/api/users/${created.data.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: "updated@example.com" }),
+      })
+    );
+    expect(patchEmailRes.status).toBe(200);
+    const patchedEmail = (await patchEmailRes.json()) as any;
+    expect(patchedEmail.data.email).toBe("updated@example.com");
+    expect(patchedEmail.data.name).toBe("Initial Name");
+    expect(patchedRole.data.role).toBe("admin");
+
+    // Patch with invalid email returns 400
+    const badEmailRes = await app.fetch(
+      new Request(`http://localhost/api/users/${created.data.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: "invalid-email" }),
+      })
+    );
+    expect(badEmailRes.status).toBe(400);
+
+    // Patch non-existent user returns 404
+    const notFoundRes = await app.fetch(
+      new Request("http://localhost/api/users/non-existent-id", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: "Ghost" }),
+      })
+    );
+    expect(notFoundRes.status).toBe(404);
+  });
+
   it("DELETE /api/users/:id removes user", async () => {
     const createRes = await app.fetch(
       new Request("http://localhost/api/users", {
